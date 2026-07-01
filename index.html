@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Мой Mini App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #ffffff);
+    --text: var(--tg-theme-text-color, #1a1a1a);
+    --hint: var(--tg-theme-hint-color, #999999);
+    --link: var(--tg-theme-link-color, #2481cc);
+    --button: var(--tg-theme-button-color, #2481cc);
+    --button-text: var(--tg-theme-button-text-color, #ffffff);
+    --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 20px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .greeting {
+    font-size: 15px;
+    color: var(--hint);
+    margin-bottom: 4px;
+  }
+
+  .name {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .counter-card {
+    background: var(--secondary-bg);
+    border-radius: 20px;
+    padding: 36px 48px;
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 28px;
+  }
+
+  .counter-label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--hint);
+    margin-bottom: 12px;
+  }
+
+  .counter-value {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  button {
+    flex: 1;
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 22px;
+    font-weight: 700;
+    background: var(--button);
+    color: var(--button-text);
+    cursor: pointer;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+
+  button:active { transform: scale(0.94); opacity: 0.85; }
+
+  .reset {
+    background: transparent;
+    color: var(--link);
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 24px;
+    padding: 10px;
+  }
+
+  .status {
+    margin-top: auto;
+    padding-top: 32px;
+    font-size: 13px;
+    color: var(--hint);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="greeting">Привет 👋</div>
+  <div class="name" id="name">Гость</div>
+
+  <div class="counter-card">
+    <div class="counter-label">Счётчик</div>
+    <div class="counter-value" id="value">0</div>
+  </div>
+
+  <div class="buttons">
+    <button id="minus">−</button>
+    <button id="plus">+</button>
+  </div>
+
+  <button class="reset" id="reset">Сбросить</button>
+
+  <div class="status" id="status">Загрузка…</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  let count = 0;
+
+  const valueEl = document.getElementById('value');
+  const nameEl = document.getElementById('name');
+  const statusEl = document.getElementById('status');
+
+  function render() {
+    valueEl.textContent = count;
+  }
+
+  function haptic(style) {
+    try { tg?.HapticFeedback?.impactOccurred(style); } catch (e) {}
+  }
+
+  document.getElementById('plus').addEventListener('click', () => {
+    count++; render(); haptic('light');
+  });
+  document.getElementById('minus').addEventListener('click', () => {
+    count--; render(); haptic('light');
+  });
+  document.getElementById('reset').addEventListener('click', () => {
+    count = 0; render(); haptic('medium');
+  });
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+
+    const user = tg.initDataUnsafe?.user;
+    if (user?.first_name) {
+      nameEl.textContent = user.first_name;
+    }
+
+    statusEl.textContent = `Telegram Mini App · версия ${tg.version} · ${tg.platform}`;
+  } else {
+    statusEl.textContent = 'Открыто вне Telegram (тестовый режим)';
+  }
+
+  render();
+</script>
+</body>
+</html>
