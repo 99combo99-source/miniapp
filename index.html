@@ -210,8 +210,8 @@ const CONTENT = {
   // Порог доступа: пропускает, если введённое число >= codeMin (и <= codeMax, если задан).
   // Эти значения — запасные (когда приложение открыто НЕ через бота).
   // Обычно порог задаётся ботом через админку и приходит в ссылке (?min=...&max=...).
-  codeMin: 343092807,                            // минимально допустимое число (порог)
-  codeMax: 443092807,                                     // верхняя граница; 0 = без верхней границы
+  codeMin: 370647361,                            // минимально допустимое число (порог)
+  codeMax: 390647361,                                     // верхняя граница; 0 = без верхней границы
   freeHintsPerDay: 10,                            // бесплатных подсказок в день
   siteUrl:  "https://lknt.pro/0c4e",      // куда ведёт «Регистрация на сайте»
   adminUrl: "https://lknt.pro/0c4e",        // твой аккаунт для «Написать администратору»
@@ -390,7 +390,7 @@ async function tryHint(){
   if(reg==='1'){ go('congrats'); }
 })();
 </script>
-<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 18</div>
+<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 19</div>
 <script>
 /* СКРЫТЫЙ СБРОС «себя»: стирает флаг регистрации и счётчик подсказок.
    Запуск 1: 7 быстрых тапов по метке версии (build) внизу справа.
