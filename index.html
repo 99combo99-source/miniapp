@@ -285,17 +285,31 @@ function openLink(url){
 function openSite(){ openLink(CONTENT.siteUrl); }
 function openAdmin(){ openLink(CONTENT.adminUrl); }
 
-/* облачное хранилище Telegram (с запасным localStorage для браузера) */
+/* хранилище: реальный Telegram → облако, иначе (браузер) → localStorage.
+   Ключевое: вне Telegram объект CloudStorage существует, но его колбэки не
+   приходят, поэтому используем облако ТОЛЬКО в настоящем клиенте, плюс тайм-аут,
+   чтобы ничего не могло зависнуть. */
+const USE_CLOUD = !!(tg && tg.platform && tg.platform !== 'unknown' && tg.CloudStorage);
+
 function cloudGet(key){
   return new Promise(res=>{
-    if(tg?.CloudStorage){ tg.CloudStorage.getItem(key,(e,v)=>res(e?null:v)); }
-    else { res(localStorage.getItem(key)); }
+    if(!USE_CLOUD){ res(localStorage.getItem(key)); return; }
+    let done=false;
+    const finish=v=>{ if(done) return; done=true; res(v); };
+    const t=setTimeout(()=>finish(localStorage.getItem(key)), 600);
+    try{ tg.CloudStorage.getItem(key,(e,v)=>{ clearTimeout(t); finish(e?localStorage.getItem(key):(v ?? null)); }); }
+    catch(_){ clearTimeout(t); finish(localStorage.getItem(key)); }
   });
 }
 function cloudSet(key,val){
+  try{ localStorage.setItem(key,val); }catch(_){}   // всегда пишем запасную копию
   return new Promise(res=>{
-    if(tg?.CloudStorage){ tg.CloudStorage.setItem(key,val,()=>res()); }
-    else { localStorage.setItem(key,val); res(); }
+    if(!USE_CLOUD){ res(); return; }
+    let done=false;
+    const finish=()=>{ if(done) return; done=true; res(); };
+    const t=setTimeout(finish, 600);
+    try{ tg.CloudStorage.setItem(key,val,()=>{ clearTimeout(t); finish(); }); }
+    catch(_){ clearTimeout(t); finish(); }
   });
 }
 
@@ -315,7 +329,7 @@ async function checkCode(){
   const passMax = (CODE_MAX<=0) || (num <= CODE_MAX);
 
   if(isValidNumber && passMin && passMax){
-    await cloudSet('registered','1');
+    cloudSet('registered','1');           // запись в фоне, не блокирует переход
     hint.className='hint'; hint.textContent='';
     haptic('medium');
     go('congrats');
