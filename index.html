@@ -203,7 +203,11 @@ body{
    Пусто "" — покажется красивая заставка.
    ============================================================ */
 const CONTENT = {
-  registrationCode: "777",                       // код доступа
+  // Порог доступа: пропускает, если введённое число >= codeMin (и <= codeMax, если задан).
+  // Эти значения — запасные (когда приложение открыто НЕ через бота).
+  // Обычно порог задаётся ботом через админку и приходит в ссылке (?min=...&max=...).
+  codeMin: 343092807,                            // минимально допустимое число (порог)
+  codeMax: 0,                                     // верхняя граница; 0 = без верхней границы
   freeHintsPerDay: 3,                            // бесплатных подсказок в день
   siteUrl:  "https://example.com/register",      // куда ведёт «Регистрация на сайте»
   adminUrl: "https://t.me/your_username",        // твой аккаунт для «Написать администратору»
@@ -295,17 +299,28 @@ function cloudSet(key,val){
   });
 }
 
-/* проверка кода */
+/* порог доступа: берём из ссылки (?min=...&max=...), иначе из CONTENT */
+const _params = new URLSearchParams(location.search);
+const CODE_MIN = parseInt(_params.get('min') ?? CONTENT.codeMin, 10);
+const CODE_MAX = parseInt(_params.get('max') ?? CONTENT.codeMax, 10) || 0;
+
+/* проверка кода по порогу */
 async function checkCode(){
-  const val=(document.getElementById('code').value||'').trim();
+  const raw=(document.getElementById('code').value||'').trim();
   const hint=document.getElementById('code-hint');
-  if(val===String(CONTENT.registrationCode)){
+  const num=Number(raw);
+
+  const isValidNumber = raw!=='' && Number.isInteger(num);
+  const passMin = num >= 1 && num >= CODE_MIN;
+  const passMax = (CODE_MAX<=0) || (num <= CODE_MAX);
+
+  if(isValidNumber && passMin && passMax){
     await cloudSet('registered','1');
     hint.className='hint'; hint.textContent='';
     haptic('medium');
     go('congrats');
   } else {
-    hint.className='hint err'; hint.textContent='Неверный код. Попробуй ещё раз или спроси код у администратора.';
+    hint.className='hint err'; hint.textContent='Код не подходит. Проверь и попробуй ещё раз или спроси код у администратора.';
     haptic('heavy');
   }
 }
