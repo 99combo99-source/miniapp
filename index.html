@@ -3,170 +3,359 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Мой Mini App</title>
+<title>Мины</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: var(--tg-theme-bg-color, #ffffff);
-    --text: var(--tg-theme-text-color, #1a1a1a);
-    --hint: var(--tg-theme-hint-color, #999999);
-    --link: var(--tg-theme-link-color, #2481cc);
-    --button: var(--tg-theme-button-color, #2481cc);
-    --button-text: var(--tg-theme-button-text-color, #ffffff);
-    --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
-  }
+/* ============================================================
+   НАСТРОЙКИ ВНЕШНЕГО ВИДА (цвета)
+   ============================================================ */
+:root{
+  --gold:#ffd23f; --gold-deep:#f4a300; --gold-light:#fff2b0; --gold-shadow:#b26b00;
+  --cell:#3c6a86; --cell-top:#4d84a6; --cell-edge:#2b4d64;
+  --ink:#ffffff; --muted:#9fb2cc; --soft:#cfe0f0;
+  --panel:rgba(20,30,66,.45); --panel-line:rgba(255,207,51,.55);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  color:var(--ink); overflow-x:hidden;
+  background:radial-gradient(140% 100% at 50% 0%,#1b2a5c 0%,#141b45 40%,#0d0f2b 74%,#2a1348 100%);
+}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+#stars span{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;box-shadow:0 0 4px #fff;animation:tw 3s infinite ease-in-out}
+@keyframes tw{0%,100%{opacity:.2}50%{opacity:.9}}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+.app{position:relative;z-index:1;max-width:460px;margin:0 auto;min-height:100vh;padding:20px 18px 34px;display:flex;flex-direction:column}
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 32px 20px;
-    -webkit-tap-highlight-color: transparent;
-  }
+/* Логотип */
+.logo{
+  text-align:center;font-family:'Baloo 2',sans-serif;font-weight:800;line-height:.95;
+  letter-spacing:1px;text-transform:uppercase;
+  background:linear-gradient(180deg,var(--gold-light) 0%,var(--gold) 45%,var(--gold-deep) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 3px 0 var(--gold-shadow)) drop-shadow(0 0 16px rgba(255,200,60,.5));
+}
+.logo.big{font-size:52px;margin:14px 0 18px}
+.logo.small{font-size:30px;margin:4px 0 16px}
 
-  .greeting {
-    font-size: 15px;
-    color: var(--hint);
-    margin-bottom: 4px;
-  }
+/* Экраны */
+.screen{display:none;flex-direction:column;flex:1;animation:enter .32s ease}
+.screen.active{display:flex}
+@keyframes enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-  .name {
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 40px;
-    text-align: center;
-  }
+/* Медиа-рамка (фото/видео/заставка) */
+.media{
+  border-radius:20px;border:3px solid var(--gold);overflow:hidden;
+  box-shadow:0 0 22px rgba(255,205,51,.4),inset 0 0 18px rgba(255,205,51,.1);
+  background:linear-gradient(160deg,#22346b,#171d47);
+  aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;margin-bottom:18px;
+}
+.media img,.media video,.media iframe{width:100%;height:100%;object-fit:cover;display:block;border:0}
+.media .ph{font-size:60px;filter:drop-shadow(0 0 16px rgba(255,205,51,.6))}
 
-  .counter-card {
-    background: var(--secondary-bg);
-    border-radius: 20px;
-    padding: 36px 48px;
-    text-align: center;
-    width: 100%;
-    max-width: 320px;
-    margin-bottom: 28px;
-  }
+.msg{font-size:16px;line-height:1.5;color:var(--soft);text-align:center;margin-bottom:22px}
+.msg b{color:var(--gold)}
 
-  .counter-label {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--hint);
-    margin-bottom: 12px;
-  }
+.spacer{flex:1}
 
-  .counter-value {
-    font-size: 64px;
-    font-weight: 800;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
+/* Кнопки */
+.btn{display:block;width:100%;border:none;cursor:pointer;border-radius:15px;
+  padding:16px;font-size:17px;font-weight:800;letter-spacing:.3px;margin-top:12px;
+  font-family:'Inter',sans-serif;transition:transform .09s ease,box-shadow .09s ease}
+.btn.gold{color:#6b3f00;text-transform:uppercase;
+  background:linear-gradient(180deg,#ffe27a 0%,var(--gold) 45%,var(--gold-deep) 100%);
+  box-shadow:0 5px 0 var(--gold-shadow),0 0 16px rgba(255,205,51,.45)}
+.btn.gold:active{transform:translateY(4px);box-shadow:0 1px 0 var(--gold-shadow)}
+.btn.ghost{color:var(--gold);background:transparent;border:2px solid var(--panel-line)}
+.btn.ghost:active{transform:translateY(2px)}
 
-  .buttons {
-    display: flex;
-    gap: 12px;
-    width: 100%;
-    max-width: 320px;
-  }
+/* Ввод кода */
+.field{margin:6px 0 4px}
+.field input{width:100%;text-align:center;font-size:24px;font-weight:800;letter-spacing:6px;
+  color:var(--gold);background:var(--panel);border:2px solid var(--panel-line);border-radius:14px;
+  padding:15px;outline:none;font-family:'Baloo 2',sans-serif}
+.field input::placeholder{color:#5b6b86;letter-spacing:4px}
+.hint{font-size:13px;color:var(--muted);text-align:center;margin-top:8px;min-height:18px}
+.hint.err{color:#ff8b8b}
 
-  button {
-    flex: 1;
-    border: none;
-    border-radius: 14px;
-    padding: 16px;
-    font-size: 22px;
-    font-weight: 700;
-    background: var(--button);
-    color: var(--button-text);
-    cursor: pointer;
-    transition: transform 0.08s ease, opacity 0.15s ease;
-  }
+/* Экран «Мины» */
+.board{align-self:center;padding:12px;border-radius:20px;border:3px solid var(--gold);
+  background:var(--panel);box-shadow:0 0 22px rgba(255,205,51,.4),inset 0 0 16px rgba(255,205,51,.1);margin-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.cell{width:52px;height:52px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:30px;
+  background:linear-gradient(180deg,var(--cell-top),var(--cell));border:1px solid var(--cell-edge);
+  box-shadow:inset 0 2px 2px rgba(255,255,255,.18),inset 0 -3px 4px rgba(0,0,0,.28)}
+.cell .s{opacity:0;transform:scale(.2) rotate(-30deg);color:var(--gold);
+  text-shadow:0 0 10px rgba(255,210,63,.9),0 0 20px rgba(255,160,0,.6);
+  transition:transform .28s cubic-bezier(.2,1.4,.4,1),opacity .2s ease}
+.cell.star .s{opacity:1;transform:scale(1) rotate(0)}
+.traps{text-align:center;margin:20px 0 4px}
+.traps .lbl{font-size:14px;font-weight:700;letter-spacing:1px;color:var(--soft);text-transform:uppercase;margin-bottom:12px}
+.stepper{display:flex;align-items:center;justify-content:center;gap:22px}
+.stepper button{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;font-size:26px;font-weight:900;color:#7a4a00;
+  background:radial-gradient(circle at 35% 30%,#ffe07a,var(--gold) 60%,var(--gold-deep));
+  box-shadow:0 3px 0 var(--gold-shadow),0 0 10px rgba(255,205,51,.5)}
+.stepper button:active{transform:translateY(2px) scale(.96);box-shadow:0 1px 0 var(--gold-shadow)}
+.stepper .num{font-size:32px;font-weight:900;min-width:40px;color:var(--gold);font-family:'Baloo 2',sans-serif}
 
-  button:active { transform: scale(0.94); opacity: 0.85; }
-
-  .reset {
-    background: transparent;
-    color: var(--link);
-    font-size: 15px;
-    font-weight: 600;
-    margin-top: 24px;
-    padding: 10px;
-  }
-
-  .status {
-    margin-top: auto;
-    padding-top: 32px;
-    font-size: 13px;
-    color: var(--hint);
-    text-align: center;
-  }
+.topline{display:flex;justify-content:center;margin-bottom:6px}
+.pill{font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--panel-line);
+  padding:6px 14px;border-radius:999px;font-weight:600}
 </style>
 </head>
 <body>
-  <div class="greeting">Привет 👋</div>
-  <div class="name" id="name">Гость</div>
+<div id="stars"></div>
+<div class="app">
 
-  <div class="counter-card">
-    <div class="counter-label">Счётчик</div>
-    <div class="counter-value" id="value">0</div>
-  </div>
+  <!-- ================= ЭКРАН: СТАРТ ================= -->
+  <section class="screen active" id="s-start">
+    <div class="logo big">Мины</div>
+    <div class="media" id="m-start"></div>
+    <div class="msg" id="t-start"></div>
+    <div class="spacer"></div>
+    <button class="btn gold" onclick="go('register')">🚀 Регистрация</button>
+    <button class="btn ghost" onclick="go('video')">🎬 Видео: как работает</button>
+  </section>
 
-  <div class="buttons">
-    <button id="minus">−</button>
-    <button id="plus">+</button>
-  </div>
+  <!-- ================= ЭКРАН: ВИДЕО ================= -->
+  <section class="screen" id="s-video">
+    <div class="logo small">Как это работает</div>
+    <div class="media" id="m-video"></div>
+    <div class="msg" id="t-video"></div>
+    <div class="spacer"></div>
+    <button class="btn gold" onclick="go('register')">🚀 Регистрация</button>
+    <button class="btn ghost" onclick="go('start')">◀️ Назад</button>
+  </section>
 
-  <button class="reset" id="reset">Сбросить</button>
+  <!-- ================= ЭКРАН: РЕГИСТРАЦИЯ ================= -->
+  <section class="screen" id="s-register">
+    <div class="logo small">Регистрация</div>
+    <div class="media" id="m-register"></div>
+    <div class="msg" id="t-register"></div>
+    <button class="btn ghost" onclick="openSite()">🌐 Регистрация на сайте</button>
+    <div class="field">
+      <input id="code" inputmode="numeric" placeholder="код" maxlength="10" autocomplete="off">
+    </div>
+    <button class="btn gold" onclick="checkCode()">✅ Подтвердить код</button>
+    <div class="hint" id="code-hint"></div>
+    <div class="spacer"></div>
+    <button class="btn ghost" onclick="go('start')">◀️ Назад</button>
+  </section>
 
-  <div class="status" id="status">Загрузка…</div>
+  <!-- ================= ЭКРАН: ПОЗДРАВЛЕНИЕ ================= -->
+  <section class="screen" id="s-congrats">
+    <div class="logo small">Готово!</div>
+    <div class="media" id="m-congrats"></div>
+    <div class="msg" id="t-congrats"></div>
+    <div class="spacer"></div>
+    <button class="btn gold" onclick="go('mines')">💣 Подсказка: Мины</button>
+    <button class="btn ghost" onclick="go('other')">🎮 Подсказка: другая игра</button>
+  </section>
+
+  <!-- ================= ЭКРАН: МИНЫ ================= -->
+  <section class="screen" id="s-mines">
+    <div class="logo small">Мины</div>
+    <div class="topline"><span class="pill" id="left-pill"></span></div>
+    <div class="board"><div class="grid" id="grid"></div></div>
+    <div class="traps">
+      <div class="lbl">Количество ловушек</div>
+      <div class="stepper">
+        <button onclick="setTraps(-1)">−</button>
+        <span class="num" id="trapNum">3</span>
+        <button onclick="setTraps(1)">+</button>
+      </div>
+    </div>
+    <div class="hint" id="mines-hint"></div>
+    <button class="btn gold" onclick="tryHint()">Получить подсказку</button>
+    <div class="spacer"></div>
+    <button class="btn ghost" onclick="go('congrats')">◀️ Назад</button>
+  </section>
+
+  <!-- ================= ЭКРАН: ЛИМИТ ================= -->
+  <section class="screen" id="s-limit">
+    <div class="logo small">Лимит на сегодня</div>
+    <div class="media"><div class="ph">⏳</div></div>
+    <div class="msg" id="t-limit"></div>
+    <div class="spacer"></div>
+    <button class="btn gold" onclick="openAdmin()">✍️ Написать администратору</button>
+    <button class="btn ghost" onclick="go('congrats')">◀️ Назад</button>
+  </section>
+
+  <!-- ================= ЭКРАН: ДРУГАЯ ИГРА ================= -->
+  <section class="screen" id="s-other">
+    <div class="logo small">Скоро</div>
+    <div class="media" id="m-other"></div>
+    <div class="msg" id="t-other"></div>
+    <div class="spacer"></div>
+    <button class="btn ghost" onclick="go('congrats')">◀️ Назад</button>
+  </section>
+
+</div>
 
 <script>
-  const tg = window.Telegram?.WebApp;
-  let count = 0;
+/* ============================================================
+   БЛОК НАСТРОЕК — МЕНЯЙ ТОЛЬКО ЗДЕСЬ
+   image / videoUrl: вставь ссылку на картинку или видео.
+   Пусто "" — покажется красивая заставка.
+   ============================================================ */
+const CONTENT = {
+  registrationCode: "777",                       // код доступа
+  freeHintsPerDay: 3,                            // бесплатных подсказок в день
+  siteUrl:  "https://example.com/register",      // куда ведёт «Регистрация на сайте»
+  adminUrl: "https://t.me/your_username",        // твой аккаунт для «Написать администратору»
 
-  const valueEl = document.getElementById('value');
-  const nameEl = document.getElementById('name');
-  const statusEl = document.getElementById('status');
-
-  function render() {
-    valueEl.textContent = count;
+  screens: {
+    start:    { image:"", text:"Добро пожаловать! Это закрытый помощник для игры <b>«Мины»</b>. Пройди быструю регистрацию — и получай подсказки, где безопасно нажимать." },
+    video:    { videoUrl:"", text:"Посмотри короткое видео — как всё работает. Потом нажми <b>«Регистрация»</b>." },
+    register: { image:"", text:"Почти готово. Нажми <b>«Регистрация на сайте»</b>, а затем введи <b>код доступа</b> — я скажу его лично." },
+    congrats: { image:"", text:"Ты в игре! Выбирай, по какой игре нужна подсказка." },
+    limit:    { text:"Бесплатные подсказки на сегодня закончились (3 из 3). Нужна ещё? Напиши администратору — помогу, если тяжело идёт." },
+    other:    { image:"", text:"Эта игра появится позже. Следи за обновлениями 🙂" },
   }
+};
 
-  function haptic(style) {
-    try { tg?.HapticFeedback?.impactOccurred(style); } catch (e) {}
-  }
+/* ============================================================
+   ДАЛЬШЕ КОД — МЕНЯТЬ НЕ ОБЯЗАТЕЛЬНО
+   ============================================================ */
+const tg = window.Telegram?.WebApp;
+if (tg){ tg.ready(); tg.expand(); }
 
-  document.getElementById('plus').addEventListener('click', () => {
-    count++; render(); haptic('light');
-  });
-  document.getElementById('minus').addEventListener('click', () => {
-    count--; render(); haptic('light');
-  });
-  document.getElementById('reset').addEventListener('click', () => {
-    count = 0; render(); haptic('medium');
-  });
+function haptic(k){ try{ tg?.HapticFeedback?.impactOccurred(k); }catch(e){} }
 
-  if (tg) {
-    tg.ready();
-    tg.expand();
+/* звёздный фон */
+(function(){const b=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('span');s.style.left=Math.random()*100+'vw';s.style.top=Math.random()*100+'vh';s.style.animationDelay=(Math.random()*3)+'s';b.appendChild(s);}})();
 
-    const user = tg.initDataUnsafe?.user;
-    if (user?.first_name) {
-      nameEl.textContent = user.first_name;
-    }
-
-    statusEl.textContent = `Telegram Mini App · версия ${tg.version} · ${tg.platform}`;
+/* заставка / фото */
+function fillMedia(id, url, emoji){
+  const el=document.getElementById(id); if(!el) return;
+  if(url){ el.innerHTML = '<img src="'+url+'" alt="">'; }
+  else { el.innerHTML = '<div class="ph">'+(emoji||'💣')+'</div>'; }
+}
+function fillVideo(id, url){
+  const el=document.getElementById(id); if(!el) return;
+  if(!url){ el.innerHTML='<div class="ph">🎬</div>'; return; }
+  if(/youtu\.?be/.test(url)){
+    const m=url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+    const vid=m?m[1]:'';
+    el.innerHTML='<iframe src="https://www.youtube.com/embed/'+vid+'" allowfullscreen></iframe>';
   } else {
-    statusEl.textContent = 'Открыто вне Telegram (тестовый режим)';
+    el.innerHTML='<video src="'+url+'" controls playsinline></video>';
   }
+}
 
+/* заполнить тексты и медиа из CONTENT */
+function render(){
+  const c=CONTENT.screens;
+  document.getElementById('t-start').innerHTML=c.start.text;
+  document.getElementById('t-video').innerHTML=c.video.text;
+  document.getElementById('t-register').innerHTML=c.register.text;
+  document.getElementById('t-congrats').innerHTML=c.congrats.text;
+  document.getElementById('t-limit').innerHTML=c.limit.text;
+  document.getElementById('t-other').innerHTML=c.other.text;
+  fillMedia('m-start', c.start.image, '💣');
+  fillMedia('m-register', c.register.image, '🔐');
+  fillMedia('m-congrats', c.congrats.image, '🎉');
+  fillMedia('m-other', c.other.image, '🚧');
+  fillVideo('m-video', c.video.videoUrl);
+}
+
+/* навигация */
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+name).classList.add('active');
+  window.scrollTo(0,0);
+  haptic('light');
+  if(name==='mines') updateLeftPill();
+}
+
+/* ссылки наружу */
+function openLink(url){
+  if(!url) return;
+  if(/t\.me\//.test(url)){ tg?.openTelegramLink ? tg.openTelegramLink(url) : window.open(url,'_blank'); }
+  else { tg?.openLink ? tg.openLink(url) : window.open(url,'_blank'); }
+}
+function openSite(){ openLink(CONTENT.siteUrl); }
+function openAdmin(){ openLink(CONTENT.adminUrl); }
+
+/* облачное хранилище Telegram (с запасным localStorage для браузера) */
+function cloudGet(key){
+  return new Promise(res=>{
+    if(tg?.CloudStorage){ tg.CloudStorage.getItem(key,(e,v)=>res(e?null:v)); }
+    else { res(localStorage.getItem(key)); }
+  });
+}
+function cloudSet(key,val){
+  return new Promise(res=>{
+    if(tg?.CloudStorage){ tg.CloudStorage.setItem(key,val,()=>res()); }
+    else { localStorage.setItem(key,val); res(); }
+  });
+}
+
+/* проверка кода */
+async function checkCode(){
+  const val=(document.getElementById('code').value||'').trim();
+  const hint=document.getElementById('code-hint');
+  if(val===String(CONTENT.registrationCode)){
+    await cloudSet('registered','1');
+    hint.className='hint'; hint.textContent='';
+    haptic('medium');
+    go('congrats');
+  } else {
+    hint.className='hint err'; hint.textContent='Неверный код. Попробуй ещё раз или спроси код у администратора.';
+    haptic('heavy');
+  }
+}
+
+/* ===== экран «Мины» ===== */
+const GRID=5, CELLS=25;
+const grid=document.getElementById('grid');
+const cells=[];
+for(let i=0;i<CELLS;i++){const c=document.createElement('div');c.className='cell';c.innerHTML='<span class="s">★</span>';grid.appendChild(c);cells.push(c);}
+let traps=3;
+function setTraps(d){ traps=Math.max(1,Math.min(15,traps+d)); document.getElementById('trapNum').textContent=traps; haptic('light'); }
+
+async function updateLeftPill(){
+  const day=new Date().toISOString().slice(0,10);
+  const used=parseInt(await cloudGet('hints_'+day)||'0',10);
+  const left=Math.max(0,CONTENT.freeHintsPerDay-used);
+  document.getElementById('left-pill').textContent='Бесплатных подсказок сегодня: '+left+' из '+CONTENT.freeHintsPerDay;
+}
+
+function pickSafe(trapCount,howMany){
+  const idx=[...Array(CELLS).keys()];
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+  const t=new Set(idx.slice(0,trapCount));
+  return idx.filter(i=>!t.has(i)).slice(0,howMany);
+}
+function revealStars(){
+  cells.forEach(c=>c.classList.remove('star'));
+  const howMany=Math.max(3,Math.min(6,CELLS-traps-10));
+  pickSafe(traps,howMany).forEach((ci,k)=>setTimeout(()=>{cells[ci].classList.add('star');haptic('light');},k*120));
+}
+
+async function tryHint(){
+  const day=new Date().toISOString().slice(0,10);
+  const key='hints_'+day;
+  const used=parseInt(await cloudGet(key)||'0',10);
+  if(used>=CONTENT.freeHintsPerDay){ go('limit'); return; }
+  await cloudSet(key,String(used+1));
+  haptic('medium');
+  revealStars();
+  const left=CONTENT.freeHintsPerDay-(used+1);
+  document.getElementById('mines-hint').textContent='Звёздочки — куда безопасно нажимать 👆';
+  updateLeftPill();
+}
+
+/* старт: если уже зарегистрирован — сразу к подсказкам */
+(async function init(){
   render();
+  const reg=await cloudGet('registered');
+  if(reg==='1'){ go('congrats'); }
+})();
 </script>
 </body>
 </html>
