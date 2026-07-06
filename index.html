@@ -386,6 +386,42 @@ async function tryHint(){
   if(reg==='1'){ go('congrats'); }
 })();
 </script>
-<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 7</div>
+<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 8</div>
+<script>
+/* СКРЫТЫЙ СБРОС «себя»: стирает флаг регистрации и счётчик подсказок.
+   Запуск 1: 7 быстрых тапов по метке версии (build) внизу справа.
+   Запуск 2: открыть приложение со ссылкой ?reset=1 */
+(function(){
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var USE_CLOUD = !!(tg && tg.platform && tg.platform!=='unknown' && tg.CloudStorage);
+  function removeKey(k){
+    try{ localStorage.removeItem(k); }catch(e){}
+    if(USE_CLOUD){ try{ tg.CloudStorage.removeItem(k, function(){}); }catch(e){} }
+  }
+  function doReset(){
+    removeKey('registered');
+    try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('hints_')===0) localStorage.removeItem(k); }); }catch(e){}
+    if(USE_CLOUD && tg.CloudStorage.getKeys){
+      try{ tg.CloudStorage.getKeys(function(err, keys){ (keys||[]).forEach(function(k){ if(k.indexOf('hints_')===0) removeKey(k); }); }); }catch(e){}
+    }
+    try{ tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success'); }catch(e){}
+    setTimeout(function(){
+      alert('Готово: твои данные сброшены (регистрация и лимит подсказок).');
+      location.href = location.pathname + '?v=' + Date.now();
+    }, 250);
+  }
+  var badge = document.getElementById('build-badge');
+  if(badge){
+    badge.style.cursor='pointer';
+    var taps=0, timer=null;
+    badge.addEventListener('click', function(){
+      taps++; clearTimeout(timer);
+      timer=setTimeout(function(){ taps=0; }, 1500);
+      if(taps>=7){ taps=0; if(confirm('Сбросить ТВОИ данные (регистрацию и лимит подсказок)?')) doReset(); }
+    });
+  }
+  try{ if(new URLSearchParams(location.search).get('reset')==='1'){ doReset(); } }catch(e){}
+})();
+</script>
 </body>
 </html>
