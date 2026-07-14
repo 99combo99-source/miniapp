@@ -106,9 +106,15 @@ body{
 .pill{font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--panel-line);
   padding:6px 14px;border-radius:999px;font-weight:600}
 
-/* вертикальная рамка только для видео (чтобы не обрезало) */
-#m-video{ aspect-ratio: 9/16; max-height: 68vh; margin-left:auto; margin-right:auto; }
-#m-video video{ object-fit: contain; background:#000; }
+/* вертикальная рамка для видео (чтобы не обрезало) */
+#m-video, #m-video2{ aspect-ratio: 9/16; max-height: 68vh; margin-left:auto; margin-right:auto; }
+#m-video video, #m-video2 video{ object-fit: contain; background:#000; }
+
+/* шапка аккаунта: ID и баланс */
+.account{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.account span{font-size:13px;color:var(--soft);background:var(--panel);border:1px solid var(--panel-line);
+  padding:8px 12px;border-radius:999px;font-weight:600;flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account b{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -163,6 +169,10 @@ body{
   <!-- ================= ЭКРАН: МИНЫ ================= -->
   <section class="screen" id="s-mines">
     <div class="logo small">Мины</div>
+    <div class="account">
+      <span>ID: <b id="acc-id">—</b></span>
+      <span>Баланс: <b id="acc-bal">0 ₽</b></span>
+    </div>
     <div class="topline"><span class="pill" id="left-pill"></span></div>
     <div class="board"><div class="grid" id="grid"></div></div>
     <div class="traps">
@@ -175,8 +185,18 @@ body{
     </div>
     <div class="hint" id="mines-hint"></div>
     <button class="btn gold" onclick="tryHint()">Получить подсказку</button>
+    <button class="btn ghost" onclick="go('video2')">📹 Смотреть видео</button>
     <div class="spacer"></div>
     <button class="btn ghost" onclick="go('congrats')">◀️ Назад</button>
+  </section>
+
+  <!-- ================= ЭКРАН: ВТОРОЕ ВИДЕО ================= -->
+  <section class="screen" id="s-video2">
+    <div class="logo small">Видео</div>
+    <div class="media" id="m-video2"></div>
+    <div class="msg" id="t-video2"></div>
+    <div class="spacer"></div>
+    <button class="btn ghost" onclick="go('mines')">◀️ Назад</button>
   </section>
 
   <!-- ================= ЭКРАН: ЛИМИТ ================= -->
@@ -219,6 +239,7 @@ const CONTENT = {
   screens: {
     start:    { image:"28x.jpeg", text:"Добро пожаловать! Это закрытый помощник для игры <b>«Мины»</b>. Пройди быструю регистрацию — и получай подсказки, где безопасно нажимать." },
     video:    { videoUrl:"compressed_how.mp4", text:"Посмотри короткое видео — как всё работает. Потом нажми <b>«Регистрация»</b>." },
+    video2:   { videoUrl:"", text:"Второе видео." },
     register: { image:"reg.jpg", text:"Почти готово. Нажми <b>«Регистрация на сайте»</b>, а затем введи <b>ID своего аккаунта</b> — бот примет тебя за 0.1 секунду." },
     congrats: { image:"", text:"Ты в игре! Выбирай, по какой игре нужна подсказка." },
     limit:    { text:"Бесплатные подсказки на сегодня закончились (10 из 10). Остались вопросы? Пиши администратору." },
@@ -264,11 +285,13 @@ function render(){
   document.getElementById('t-congrats').innerHTML=c.congrats.text;
   document.getElementById('t-limit').innerHTML=c.limit.text;
   document.getElementById('t-other').innerHTML=c.other.text;
+  document.getElementById('t-video2').innerHTML=c.video2.text;
   fillMedia('m-start', c.start.image, '💣');
   fillMedia('m-register', c.register.image, '🔐');
   fillMedia('m-congrats', c.congrats.image, '🎉');
   fillMedia('m-other', c.other.image, '🚧');
   fillVideo('m-video', c.video.videoUrl);
+  fillVideo('m-video2', c.video2.videoUrl);
 }
 
 /* навигация */
@@ -277,7 +300,7 @@ function go(name){
   document.getElementById('s-'+name).classList.add('active');
   window.scrollTo(0,0);
   haptic('light');
-  if(name==='mines') updateLeftPill();
+  if(name==='mines'){ updateLeftPill(); updateAccount(); }
 }
 
 /* ссылки наружу */
@@ -334,6 +357,7 @@ async function checkCode(){
 
   if(isValidNumber && passMin && passMax){
     cloudSet('registered','1');           // запись в фоне, не блокирует переход
+    cloudSet('userCode', raw);            // сохраняем ID пользователя в его профиль
     hint.className='hint'; hint.textContent='';
     haptic('medium');
     go('congrats');
@@ -383,6 +407,16 @@ async function tryHint(){
   updateLeftPill();
 }
 
+/* показать ID и баланс пользователя на экране «Мины» */
+async function updateAccount(){
+  const code = await cloudGet('userCode');
+  const bal  = await cloudGet('balance');
+  const idEl = document.getElementById('acc-id');
+  const balEl= document.getElementById('acc-bal');
+  if(idEl)  idEl.textContent  = code || '—';
+  if(balEl) balEl.textContent = (bal || '0') + ' ₽';
+}
+
 /* старт: если уже зарегистрирован — сразу к подсказкам */
 (async function init(){
   render();
@@ -390,7 +424,7 @@ async function tryHint(){
   if(reg==='1'){ go('congrats'); }
 })();
 </script>
-<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 19</div>
+<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 20</div>
 <script>
 /* СКРЫТЫЙ СБРОС «себя»: стирает флаг регистрации и счётчик подсказок.
    Запуск 1: 7 быстрых тапов по метке версии (build) внизу справа.
