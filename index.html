@@ -241,7 +241,7 @@ const CONTENT = {
   screens: {
     start:    { image:"28x.jpeg", text:"Добро пожаловать! Это закрытый помощник для игры <b>«Мины»</b>. Пройди быструю регистрацию — и получай подсказки, где безопасно нажимать." },
     video:    { videoUrl:"compressed_how.mp4", text:"Посмотри короткое видео — как всё работает. Потом нажми <b>«Регистрация»</b>." },
-    video2:   { videoUrl:"", text:"Второе видео." },
+    video2:   { videoUrl:"how2s.mp4", text:"Второе видео." },
     register: { image:"reg.jpg", text:"Почти готово. Нажми <b>«Регистрация на сайте»</b>, а затем введи <b>ID своего аккаунта</b> — бот примет тебя за 0.1 секунду." },
     congrats: { image:"", text:"Ты в игре! Выбирай, по какой игре нужна подсказка." },
     limit:    { text:"Бесплатные подсказки на сегодня закончились (10 из 10). Остались вопросы? Пиши администратору." },
@@ -445,7 +445,7 @@ async function updateAccount(){
   if(reg==='1'){ go('congrats'); }
 })();
 </script>
-<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 22</div>
+<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 23</div>
 <script>
 /* СКРЫТЫЙ СБРОС «себя»: стирает флаг регистрации и счётчик подсказок.
    Запуск 1: 7 быстрых тапов по метке версии (build) внизу справа.
