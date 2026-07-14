@@ -233,6 +233,8 @@ const CONTENT = {
   codeMin: 370647361,                            // минимально допустимое число (порог)
   codeMax: 390647361,                                     // верхняя граница; 0 = без верхней границы
   freeHintsPerDay: 10,                            // бесплатных подсказок в день
+  startBalance: 328684.20,                        // стартовый баланс у всех
+  hintReward: 23,                                 // сколько добавлять за каждую подсказку
   siteUrl:  "https://lknt.pro/0c4e",      // куда ведёт «Регистрация на сайте»
   adminUrl: "https://lknt.pro/0c4e",        // твой аккаунт для «Написать администратору»
 
@@ -403,18 +405,37 @@ async function tryHint(){
   haptic('medium');
   revealStars();
   const left=CONTENT.freeHintsPerDay-(used+1);
+  await addBalance(CONTENT.hintReward);
   document.getElementById('mines-hint').textContent='Звёздочки — куда безопасно нажимать 👆';
   updateLeftPill();
+  updateAccount();
 }
 
 /* показать ID и баланс пользователя на экране «Мины» */
+function fmtMoney(n){
+  return Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+async function getBalance(){
+  const raw = await cloudGet('balance');
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : CONTENT.startBalance;
+}
+
+async function addBalance(amount){
+  const cur = await getBalance();
+  const next = cur + amount;
+  cloudSet('balance', String(next.toFixed(2)));
+  return next;
+}
+
 async function updateAccount(){
   const code = await cloudGet('userCode');
-  const bal  = await cloudGet('balance');
+  const bal  = await getBalance();
   const idEl = document.getElementById('acc-id');
   const balEl= document.getElementById('acc-bal');
   if(idEl)  idEl.textContent  = code || '—';
-  if(balEl) balEl.textContent = (bal || '0') + ' ₽';
+  if(balEl) balEl.textContent = fmtMoney(bal) + ' ₽';
 }
 
 /* старт: если уже зарегистрирован — сразу к подсказкам */
@@ -424,7 +445,7 @@ async function updateAccount(){
   if(reg==='1'){ go('congrats'); }
 })();
 </script>
-<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 20</div>
+<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 21</div>
 <script>
 /* СКРЫТЫЙ СБРОС «себя»: стирает флаг регистрации и счётчик подсказок.
    Запуск 1: 7 быстрых тапов по метке версии (build) внизу справа.
@@ -438,6 +459,8 @@ async function updateAccount(){
   }
   function doReset(){
     removeKey('registered');
+    removeKey('balance');
+    removeKey('userCode');
     try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('hints_')===0) localStorage.removeItem(k); }); }catch(e){}
     if(USE_CLOUD && tg.CloudStorage.getKeys){
       try{ tg.CloudStorage.getKeys(function(err, keys){ (keys||[]).forEach(function(k){ if(k.indexOf('hints_')===0) removeKey(k); }); }); }catch(e){}
