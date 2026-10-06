@@ -230,7 +230,7 @@ const CONTENT = {
   // Порог доступа: пропускает, если введённое число >= codeMin (и <= codeMax, если задан).
   // Эти значения — запасные (когда приложение открыто НЕ через бота).
   // Обычно порог задаётся ботом через админку и приходит в ссылке (?min=...&max=...).
-  codeMin: 381860862,                            // минимально допустимое число (порог)
+  codeMin: 382781744,                            // минимально допустимое число (порог)
   codeMax: 399647361,                                     // верхняя граница; 0 = без верхней границы
   freeHintsPerDay: 10,                            // бесплатных подсказок в день
   startBalance: 0,                                // стартовый баланс у всех
@@ -445,7 +445,7 @@ async function updateAccount(){
   if(reg==='1'){ go('congrats'); }
 })();
 </script>
-<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 25</div>
+<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 26</div>
 <script>
 /* СКРЫТЫЙ СБРОС «себя»: стирает флаг регистрации и счётчик подсказок.
    Запуск 1: 7 быстрых тапов по метке версии (build) внизу справа.
