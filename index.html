@@ -4,10 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Мины</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="telegram-web-app.js"></script>
+<link rel="preload" href="28x.webp" as="image" fetchpriority="high">
+<link rel="preload" href="fonts/inter-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* шрифты лежат рядом с сайтом — без загрузки с Google */
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(fonts/inter-cyrillic-wght-normal.woff2) format('woff2');
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Inter';font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(fonts/inter-latin-wght-normal.woff2) format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Baloo 2';font-style:normal;font-display:swap;font-weight:400 800;
+  src:url(fonts/baloo-2-latin-wght-normal.woff2) format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+</style>
 <style>
 /* ============================================================
    НАСТРОЙКИ ВНЕШНЕГО ВИДА (цвета)
@@ -239,10 +250,10 @@ const CONTENT = {
   adminUrl: "https://t.me/vavadasi",        // твой аккаунт для «Написать администратору»
 
   screens: {
-    start:    { image:"28x.jpeg", text:"Добро пожаловать! Это закрытый помощник для игры <b>«Мины»</b>. Пройди быструю регистрацию — и получай подсказки, где безопасно нажимать." },
+    start:    { image:"28x.webp", text:"Добро пожаловать! Это закрытый помощник для игры <b>«Мины»</b>. Пройди быструю регистрацию — и получай подсказки, где безопасно нажимать." },
     video:    { videoUrl:"compressed_how.mp4", text:"Посмотри короткое видео — как всё работает. Потом нажми <b>«Регистрация»</b>." },
     video2:   { videoUrl:"how2s.mp4", text:"Второе видео." },
-    register: { image:"reg.jpg", text:"Почти готово. Нажми <b>«Регистрация на сайте»</b>, а затем введи <b>ID своего аккаунта</b> — бот примет тебя за 0.1 секунду." },
+    register: { image:"reg.webp", text:"Почти готово. Нажми <b>«Регистрация на сайте»</b>, а затем введи <b>ID своего аккаунта</b> — бот примет тебя за 0.1 секунду." },
     congrats: { image:"", text:"Ты в игре! Выбирай, по какой игре нужна подсказка." },
     limit:    { text:"Бесплатные подсказки на сегодня закончились (10 из 10). Остались вопросы? Пиши администратору." },
     other:    { image:"", text:"Эта игра появится позже. Следи за обновлениями 🙂" },
@@ -274,7 +285,7 @@ function fillVideo(id, url){
     const vid=m?m[1]:'';
     el.innerHTML='<iframe src="https://www.youtube.com/embed/'+vid+'" allowfullscreen></iframe>';
   } else {
-    el.innerHTML='<video src="'+url+'" controls playsinline></video>';
+    el.innerHTML='<video src="'+url+'" controls playsinline preload="metadata"></video>';
   }
 }
 
@@ -288,18 +299,34 @@ function render(){
   document.getElementById('t-limit').innerHTML=c.limit.text;
   document.getElementById('t-other').innerHTML=c.other.text;
   document.getElementById('t-video2').innerHTML=c.video2.text;
-  fillMedia('m-start', c.start.image, '💣');
-  fillMedia('m-register', c.register.image, '🔐');
-  fillMedia('m-congrats', c.congrats.image, '🎉');
-  fillMedia('m-other', c.other.image, '🚧');
-  fillVideo('m-video', c.video.videoUrl);
-  fillVideo('m-video2', c.video2.videoUrl);
+  ensureMedia('start');   // при открытии — только картинка первого экрана
 }
+
+/* медиа остальных экранов грузится только при переходе на них */
+const _mediaDone={};
+function ensureMedia(name){
+  if(_mediaDone[name]) return;
+  const c=CONTENT.screens;
+  const map={
+    start:   ()=>fillMedia('m-start', c.start.image, '💣'),
+    register:()=>fillMedia('m-register', c.register.image, '🔐'),
+    congrats:()=>fillMedia('m-congrats', c.congrats.image, '🎉'),
+    other:   ()=>fillMedia('m-other', c.other.image, '🚧'),
+    video:   ()=>fillVideo('m-video', c.video.videoUrl),
+    video2:  ()=>fillVideo('m-video2', c.video2.videoUrl),
+  };
+  if(map[name]){ map[name](); _mediaDone[name]=true; }
+}
+/* после открытия, в фоне, заранее подтянуть маленькую картинку регистрации */
+window.addEventListener('load', ()=>setTimeout(()=>{
+  const u=CONTENT.screens.register.image; if(u){ const i=new Image(); i.src=u; }
+}, 1500));
 
 /* навигация */
 function go(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('s-'+name).classList.add('active');
+  ensureMedia(name);
   window.scrollTo(0,0);
   haptic('light');
   if(name==='mines'){ updateLeftPill(); updateAccount(); }
@@ -445,7 +472,7 @@ async function updateAccount(){
   if(reg==='1'){ go('congrats'); }
 })();
 </script>
-<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 26</div>
+<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 29</div>
 <script>
 /* СКРЫТЫЙ СБРОС «себя»: стирает флаг регистрации и счётчик подсказок.
    Запуск 1: 7 быстрых тапов по метке версии (build) внизу справа.
