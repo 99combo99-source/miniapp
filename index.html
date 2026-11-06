@@ -157,7 +157,7 @@ body{
     <div class="logo small">Регистрация</div>
     <div class="media" id="m-register"></div>
     <div class="msg" id="t-register"></div>
-    <button class="btn ghost" onclick="openSite()">🌐 Регистрация на сайте</button>
+    <button class="btn ghost" onclick="openSite()">🌐 build 33</button>
     <div class="field">
       <input id="code" inputmode="numeric" placeholder="код" maxlength="10" autocomplete="off">
     </div>
@@ -254,7 +254,7 @@ const CONTENT = {
     start:    { image:"28x.webp", text:"Добро пожаловать! Это закрытый помощник для игры <b>«Мины»</b>. Пройди быструю регистрацию — и получай подсказки, где безопасно нажимать." },
     video:    { videoUrl:"compressed_how.mp4", text:"Посмотри короткое видео — как всё работает. Потом нажми <b>«Регистрация»</b>." },
     video2:   { videoUrl:"how2s.mp4", text:"Второе видео." },
-    register: { image:"instruction_steps_final.gif", text:"Почти готово. Нажми <b>«Регистрация на сайте»</b>, а затем введи <b>ID своего аккаунта</b> — бот примет тебя за 0.1 секунду." },
+    register: { image:"instruction_steps_final.gif", text:"1. Нажми <b>Регистрация</b>\n2. Выключи <b>VPN</b> на сайте\n3. Пройди регистрацию, бот принимает только <b>новые аккаунты</b>\n4. <b>Скопируй ID</b> в личном кабинете\n5. Вставь в поле бота <b>ниже</b>" },
     congrats: { image:"", text:"Ты в игре! Выбирай, по какой игре нужна подсказка." },
     limit:    { text:"Бесплатные подсказки на сегодня закончились (10 из 10). Остались вопросы? Пиши администратору." },
     other:    { image:"", text:"Эта игра появится позже. Следи за обновлениями 🙂" },
@@ -473,7 +473,7 @@ async function updateAccount(){
   if(reg==='1'){ go('congrats'); }
 })();
 </script>
-<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 34</div>
+<div id="build-badge" style="position:fixed;bottom:4px;right:6px;font:11px -apple-system,sans-serif;color:#7f8db0;z-index:99999;opacity:.75">build 35</div>
 <script>
 /* СКРЫТЫЙ СБРОС «себя»: стирает флаг регистрации и счётчик подсказок.
    Запуск 1: 7 быстрых тапов по метке версии (build) внизу справа.
